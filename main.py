@@ -3,6 +3,9 @@ import feedparser
 from bs4 import BeautifulSoup
 import json
 import glob
+import os
+
+os.makedirs("downloads", exist_ok=True)
 
 mem = {}
 for f in glob.glob("downloads/*.pdf"):
