@@ -2,6 +2,12 @@ import sys
 import feedparser
 from bs4 import BeautifulSoup
 import json
+import glob
+
+mem = {}
+for f in glob.glob("downloads/*.pdf"):
+    key = f.split("/")[1].split(".pdf")[0]
+    mem[key] = f
 
 def html_to_json(content, indent=None):
     soup = BeautifulSoup(content, "html.parser")
@@ -31,6 +37,8 @@ feed = feedparser.parse(url)
 for entry in feed.entries:
     val = entry['content'][0]['value']
     if 'Comment:' in entry['title']:
+        continue
+    if entry['title'].replace(' ', '_') in mem:
         continue
     data = html_to_json(val)
     print(entry['title'])
