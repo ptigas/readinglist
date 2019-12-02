@@ -3,13 +3,15 @@ import feedparser
 from bs4 import BeautifulSoup
 import json
 import glob
-import os
 
-os.makedirs("downloads", exist_ok=True)
+import os
+import smtplib, ssl
+
+os.makedirs(sys.argv[2], exist_ok=True)
 
 mem = {}
-for f in glob.glob("downloads/*.pdf"):
-    key = f.split("/")[1].split(".pdf")[0]
+for f in glob.glob(sys.argv[2] + "/*.pdf"):
+    key = f.split(sys.argv[2] + "/")[1].split(".pdf")[0]
     mem[key] = f
 
 def html_to_json(content, indent=None):
@@ -28,14 +30,18 @@ def html_to_json(content, indent=None):
 def save_and_rename(url, title):
     import urllib.request
 
-    response =  urllib.request.urlopen(url)
-    soup = BeautifulSoup(response, 'html.parser')
-    url = soup.find_all('meta', {'name':'citation_pdf_url'})[0]['content']
+    headers = {'User-Agent': 'Mozilla/5.0'}
+    if '.pdf' not in url:
+        req = urllib.request.Request(url, headers=headers)
+        response =  urllib.request.urlopen(req)
+        soup = BeautifulSoup(response, 'html.parser')
+        url = soup.find_all('meta', {'name':'citation_pdf_url'})[0]['content']
 
-    urllib.request.urlretrieve(url, 'downloads/{}.pdf'.format(title.replace(' ', '_')))
+    urllib.request.urlretrieve(url, sys.argv[2] + '/{}.pdf'.format(title.replace(' ', '_')))
 
 url = sys.argv[1]
 feed = feedparser.parse(url)
+print(url)
 
 for entry in feed.entries:
     val = entry['content'][0]['value']
@@ -44,9 +50,11 @@ for entry in feed.entries:
     if entry['title'].replace(' ', '_') in mem:
         continue
     data = html_to_json(val)
-    print(entry['title'])
-    print(data['Author'])
-    print(data['URL'])
+    '''
     print(data['Abstract'])
-    save_and_rename(data['URL'], entry['title'])
-    print()
+    '''
+    try:
+        save_and_rename(data['URL'], entry['title'])
+    except Exception as e:
+        print(e)
+        pass
