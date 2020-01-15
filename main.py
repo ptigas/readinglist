@@ -13,6 +13,7 @@ mem = {}
 for f in glob.glob(sys.argv[2] + "/*.pdf"):
     key = f.split(sys.argv[2] + "/")[1].split(".pdf")[0]
     mem[key] = f
+    print(key)
 
 def html_to_json(content, indent=None):
     soup = BeautifulSoup(content, "html.parser")
@@ -36,12 +37,12 @@ def save_and_rename(url, title):
         response =  urllib.request.urlopen(req)
         soup = BeautifulSoup(response, 'html.parser')
         url = soup.find_all('meta', {'name':'citation_pdf_url'})[0]['content']
+        print('{} - done'.format(title))
 
     urllib.request.urlretrieve(url, sys.argv[2] + '/{}.pdf'.format(title.replace(' ', '_')))
 
 url = sys.argv[1]
 feed = feedparser.parse(url)
-print(url)
 
 for entry in feed.entries:
     val = entry['content'][0]['value']
@@ -56,5 +57,4 @@ for entry in feed.entries:
     try:
         save_and_rename(data['URL'], entry['title'])
     except Exception as e:
-        print(e)
         pass
